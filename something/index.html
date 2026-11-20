@@ -1,0 +1,122 @@
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Password Hider</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 40px auto;
+            padding: 15px;
+        }
+        label {
+            display: block;
+            margin-top: 12px;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            margin-top: 10px;
+            padding: 8px 14px;
+            cursor: pointer;
+        }
+        hr {
+            margin: 25px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>1. Hide Password</h2>
+    <label>Enter the line:</label>
+    <input type="text" id="line" placeholder="Hello world">
+
+    <label>Enter the password:</label>
+    <input type="text" id="password" placeholder="secret123">
+
+    <button onclick="encode()">Hide Password</button>
+
+    <label>Hidden line (looks normal, contains password):</label>
+    <input type="text" id="secret_line" readonly>
+    <button onclick="copySecret()">Copy</button>
+
+    <hr>
+
+    <h2>2. Extract Password</h2>
+    <label>Paste hidden line:</label>
+    <textarea id="secret_input" rows="2"></textarea>
+
+    <label>Original line (without password):</label>
+    <input type="text" id="original_line" placeholder="Hello world">
+
+    <button onclick="decode()">Extract Password</button>
+
+    <label>Extracted Password:</label>
+    <input type="text" id="decoded_password" readonly>
+
+    <script>
+        function encode() {
+            let line = document.getElementById("line").value;
+            let password = document.getElementById("password").value;
+
+            let binary = "";
+            for (let i = 0; i < password.length; i++) {
+                let code = password.charCodeAt(i);          
+                let bits = code.toString(2).padStart(8, "0");
+                binary = binary + bits;
+            }
+
+            let hidden_whitespace = "";
+            for (let i = 0; i < binary.length; i++) {
+                if (binary[i] === "0") {
+                    hidden_whitespace = hidden_whitespace + " ";
+                } else {
+                    hidden_whitespace = hidden_whitespace + "\t";
+                }
+            }
+
+            let secret_line = line + hidden_whitespace;
+            document.getElementById("secret_line").value = secret_line;
+        }
+
+        function copySecret() {
+            let box = document.getElementById("secret_line");
+            box.select();
+            document.execCommand("copy");
+        }
+
+        function decode() {
+            let secret_line = document.getElementById("secret_input").value;
+            let original_line = document.getElementById("original_line").value;
+
+            let just_the_whitespace = secret_line.slice(original_line.length);
+
+            let extracted_binary = "";
+            for (let i = 0; i < just_the_whitespace.length; i++) {
+                if (just_the_whitespace[i] === " ") {
+                    extracted_binary = extracted_binary + "0";
+                } else {
+                    extracted_binary = extracted_binary + "1";
+                }
+            }
+
+            let decoded_password = "";
+            for (let i = 0; i < extracted_binary.length; i = i + 8) {
+                let chunk = extracted_binary.slice(i, i + 8); 
+                let number = parseInt(chunk, 2);              
+                let letter = String.fromCharCode(number);     
+                decoded_password = decoded_password + letter;
+            }
+
+            document.getElementById("decoded_password").value = decoded_password;
+        }
+    </script>
+
+</body>
+</html>
